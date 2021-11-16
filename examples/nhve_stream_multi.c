@@ -12,7 +12,11 @@
 
 #include <stdio.h> //printf, fprintf
 #include <inttypes.h> //uint8_t
-#include <unistd.h> //usleep
+#ifdef _WINDOWS
+  #include <windows.h> //Sleep
+#else
+  #include <unistd.h> //usleep
+#endif
 
 #include "../nhve.h"
 
@@ -77,7 +81,11 @@ int main(int argc, char* argv[])
 int streaming_loop(struct nhve *streamer)
 {
 	const int TOTAL_FRAMES = SECONDS*FRAMERATE;
-	const useconds_t useconds_per_frame = 1000000/FRAMERATE;
+#ifdef _WINDOWS
+	const DWORD mseconds_per_frame = 1000 / FRAMERATE;
+#else
+	const useconds_t useconds_per_frame = 1000000 / FRAMERATE;
+#endif
 	int f;
 	struct nhve_frame frames[2] = { 0 };
 	
@@ -116,7 +124,11 @@ int streaming_loop(struct nhve *streamer)
 			break; //break on error
 
 		//simulate real time source (sleep according to framerate)
+#ifdef _WINDOWS
+		Sleep(mseconds_per_frame);
+#else
 		usleep(useconds_per_frame);
+#endif
 	}
 
 	//flush the encoder by sending NULL frame, encode last frame(s) returned from hardware

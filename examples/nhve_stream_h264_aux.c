@@ -11,7 +11,11 @@
 
 #include <stdio.h> //printf, fprintf
 #include <inttypes.h> //uint8_t
-#include <unistd.h> //usleep
+#ifdef _WINDOWS
+  #include <windows.h> //Sleep
+#else
+  #include <unistd.h> //usleep
+#endif
 
 #include "../nhve.h"
 
@@ -76,7 +80,11 @@ int streaming_loop(struct nhve *streamer)
 	char aux_data_buffer[AUX_BUFFER_SIZE];
 
 	int frames=SECONDS*FRAMERATE, f;
-	const useconds_t useconds_per_frame = 1000000/FRAMERATE;
+#ifdef _WINDOWS
+	const DWORD mseconds_per_frame = 1000 / FRAMERATE;
+#else
+	const useconds_t useconds_per_frame = 1000000 / FRAMERATE;
+#endif
 
 	//we are working with NV12 because we specified nv12 pixel format
 	//when calling nhve_init, in principle we could use other format
@@ -113,7 +121,11 @@ int streaming_loop(struct nhve *streamer)
 			break; //break on error
 
 		//simulate real time source (sleep according to framerate)
+#ifdef _WINDOWS
+		Sleep(mseconds_per_frame);
+#else
 		usleep(useconds_per_frame);
+#endif
 	}
 
 	//flush the encoder by sending NULL frame, encode some last frames returned from hardware
