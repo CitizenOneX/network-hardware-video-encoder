@@ -1,6 +1,6 @@
 [submodule "hardware-video-encoder"]
 	path = hardware-video-encoder
-	url = https://github.com/CitizenOneX/hardware-video-encoder.git
+	url = https://github.com/CitizenOneX/hardware-video-encoder
 	branch = master
 [submodule "minimal-latency-streaming-protocol"]
 	path = minimal-latency-streaming-protocol
