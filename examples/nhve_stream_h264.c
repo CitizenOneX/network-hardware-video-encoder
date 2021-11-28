@@ -22,12 +22,12 @@
 const char *IP; //e.g "127.0.0.1"
 unsigned short PORT; //e.g. 9667
 
-const int WIDTH=640;
-const int HEIGHT=360;
+#define WIDTH 640
+#define HEIGHT 360
 const int FRAMERATE=30;
 int SECONDS=10;
 const char *DEVICE; //NULL for default or device e.g. "/dev/dri/renderD128"
-const char *ENCODER=NULL;//NULL for default (h264_vaapi) or FFmpeg encoder e.g. "hevc_vaapi", ...
+const char *ENCODER="h264_nvenc";//NULL for default (h264_vaapi) or FFmpeg encoder e.g. "hevc_vaapi", ...
 const char *PIXEL_FORMAT="nv12"; //NULL / "" for default (NV12) or pixel format e.g. "rgb0"
 const int PROFILE=FF_PROFILE_H264_HIGH; //or FF_PROFILE_H264_MAIN, FF_PROFILE_H264_CONSTRAINED_BASELINE, ...
 const int BFRAMES=0; //max_b_frames, set to 0 to minimize latency, non-zero to minimize size

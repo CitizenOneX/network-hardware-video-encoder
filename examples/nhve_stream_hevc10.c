@@ -21,12 +21,12 @@
 const char *IP; //e.g "127.0.0.1"
 unsigned short PORT; //e.g. 9667
 
-const int WIDTH=848;
-const int HEIGHT=480;
+#define WIDTH 848
+#define HEIGHT 480
 const int FRAMERATE=30;
 int SECONDS=10;
 const char *DEVICE; //NULL for default or device e.g. "/dev/dri/renderD128"
-const char *ENCODER="hevc_vaapi";//NULL for default (h264_vaapi) or FFmpeg encoder e.g. "hevc_vaapi", ...
+const char *ENCODER="hevc_nvenc";//NULL for default (h264_vaapi) or FFmpeg encoder e.g. "hevc_vaapi", ...
 const char *PIXEL_FORMAT="p010le"; //NULL for default (nv12) or pixel format e.g. "rgb0", ...
 const int PROFILE=FF_PROFILE_HEVC_MAIN_10; //or FF_PROFILE_HEVC_MAIN, ...
 const int BFRAMES=0; //max_b_frames, set to 0 to minimize latency, non-zero to minimize size
