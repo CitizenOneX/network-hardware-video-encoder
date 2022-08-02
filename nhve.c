@@ -96,9 +96,13 @@ int nhve_send(struct nhve *n, const struct nhve_frame *frame, uint8_t subframe)
 	if(subframe >= n->hardware_encoders_size + n->auxiliary_channels_size)
 		return NHVE_ERROR_MSG("subframe exceeds configured video/aux channels");
 
-	if(subframe < n->hardware_encoders_size)
+	if (subframe < n->hardware_encoders_size)
+	{
+		fprintf(stderr, "nhve sending vid subframe %d\n", subframe);
 		return nhve_send_video(n, frame, subframe);
+	}
 
+	fprintf(stderr, "nhve sending aux subframe %d\n", subframe);
 	return nhve_send_auxiliary(n, frame, subframe);
 }
 
@@ -123,11 +127,17 @@ static int nhve_send_video(struct nhve *n, const struct nhve_frame *frame, uint8
 			if( mlsp_send(n->network_streamer, &network_frame, subframe) != MLSP_OK)
 				return NHVE_ERROR_MSG("failed to send frame");
 
+			// TODO remove
+			fprintf(stderr, "Sent empty MLSP frame for subframe %d\n", subframe);
+
 			return NHVE_OK;
 		}
 		//copy pointers to data planes and linesizes (just a few bytes)
 		memcpy(video_frame.data, frame->data, sizeof(frame->data));
 		memcpy(video_frame.linesize, frame->linesize, sizeof(frame->linesize));
+
+		// TODO remove
+		fprintf(stderr, "Sent non-empty MLSP frame to hardware for subframe %d\n", subframe);
 
 		if( hve_send_frame(n->hardware_encoder[subframe], &video_frame) != HVE_OK )
 			return NHVE_ERROR_MSG("failed to send frame to hardware");
@@ -138,22 +148,43 @@ static int nhve_send_video(struct nhve *n, const struct nhve_frame *frame, uint8
 
 	//the only scenario when we get more than 1 frame is flushing
 	//in such case we send only first encoded frame and drain the rest
-	//otherwise the receiving side will not collect packet in multi-frame scenario
+	//otherwise the receiving side will not collect packet in multi-frame scenario.
+	//when beginning encoding we might need to send a few frames before we get any packets back
 	while( (encoded_frame = hve_receive_packet(n->hardware_encoder[subframe], &failed)) )
 	{
-		if(network_frame.data)
+		if (network_frame.data)
+		{
+			// TODO Remove
+			fprintf(stderr, "network_frame data is not null\n");
 			continue; //if we already sent something (flushing), ignore the rest of data
+		}
 
 		network_frame.data = encoded_frame->data;
 		network_frame.size = encoded_frame->size;
 
+		// TODO remove
+		fprintf(stderr, "In here: %d\n", subframe);
+
+
 		if( mlsp_send(n->network_streamer, &network_frame, subframe) != MLSP_OK)
+			return NHVE_ERROR_MSG("failed to send frame");
+	}
+
+	// check if this is one of the times (first couple of frames) that data was sent to the hve
+	// but nothing came back, and send an empty MLSP packet for this subframe to keep them in line
+	if (!network_frame.data)
+	{
+		// TODO remove
+		fprintf(stderr, "Haven't sent this one yet, sending an empty MLSP frame for subframe: %d\n", subframe);
+		if (mlsp_send(n->network_streamer, &network_frame, subframe) != MLSP_OK)
 			return NHVE_ERROR_MSG("failed to send frame");
 	}
 
 	//NULL packet and non-zero failed indicates failure during encoding
 	if(failed != HVE_OK)
 		return NHVE_ERROR_MSG("failed to encode frame");
+
+	fprintf(stderr, "Past here: %d\n", subframe);
 
 	return NHVE_OK;
 }
